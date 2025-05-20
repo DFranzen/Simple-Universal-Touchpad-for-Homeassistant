@@ -396,10 +396,10 @@ class ConfigView extends s {
 
 customElements.define("content-tpcard-editor", ConfigView);
 
-customElements.define('sutpcard', SUTPCard);
+customElements.define('sutp-card', SUTPCard);
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "sutpcard",
+  type: "sutp-card",
   name: "Simple Universal Touchpad",
   preview: true, 
     description: "A simple universal touchpad which can trigger arbitrary automation",
