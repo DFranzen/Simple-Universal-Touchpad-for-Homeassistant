@@ -1,0 +1,7 @@
+{
+    "name": "Simple Universal Touch Pad",
+    "content_in_root": true,
+    "zip_release": false,
+    "filename": "simpleUniversalTouchPad.js",
+    "render_readme": true,
+}
