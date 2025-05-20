@@ -1,6 +1,6 @@
 {
     "name": "Simple Universal Touch Pad",
     "content_in_root": true,
-    "filename": "simpleUniversalTouchPad.js",
+    "filename": "Simple-Universal-Touchpad-for-Homeassistant.js",
     "render_readme": true
 }
