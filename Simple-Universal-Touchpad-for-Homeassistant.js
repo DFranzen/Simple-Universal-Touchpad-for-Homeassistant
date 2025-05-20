@@ -124,8 +124,7 @@ class SUTPCard extends s {
     }
     
     static getConfigElement() {
-	return document.createElement("content-card-editor");
-	return document.createElement("content-card-editor");
+	return document.createElement("content-tpcard-editor");
     }
 
 
@@ -395,7 +394,7 @@ class ConfigView extends s {
     }
 }
 
-customElements.define("content-card-editor", ConfigView);
+customElements.define("content-tpcard-editor", ConfigView);
 
 customElements.define('sutpcard', SUTPCard);
 window.customCards = window.customCards || [];
