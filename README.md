@@ -2,6 +2,10 @@
 This card displays a simple universal touchpad which writes its events into helper variables. This way the events can be acted upon with any automation.
 
 ## Sample view
+### Card
+![card](https://github.com/user-attachments/assets/793eecfe-1c6e-4898-ab20-1a30e0743871)
+### Configuration
+![edit](https://github.com/user-attachments/assets/3448b2f4-05cd-4bc6-9193-026b2cd87886)
 
 ## Features
 - Simple to use card
