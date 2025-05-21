@@ -18,6 +18,17 @@ This card displays a simple universal touchpad which writes its events into help
 
 # Setup
 ## Installation
+- Open HACS in HomeAssistant
+- Press three dots at the top
+- Select "Custom Repositories"
+- Enter 
+  - Repository: https://github.com/DFranzen/Simple-Universal-Touchpad-for-Homeassistant/
+  - Type: Dashboard
+- Click Add
+- In HACS, search for "Simple Universal Touchpad"
+- Click on tree dots in the row for "Simple Universal Touchpad"
+- Select "Download" and confirm with "Download"
+- After download is finished, confirm "Reload" in the pop-up
 ## Preperation
 ## Configuration
 ## Usage
