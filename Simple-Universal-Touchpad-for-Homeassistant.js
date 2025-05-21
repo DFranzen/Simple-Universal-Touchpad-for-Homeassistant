@@ -63,7 +63,7 @@ class SUTPCard extends s {
           border: 1px solid black;
           touch-action:none;
         }
-        the-tv { 
+        touchpad-card { 
           position: relative;
           background-color: #343a40; 
           overflow: hidden;
@@ -109,14 +109,14 @@ class SUTPCard extends s {
         .mouse_button_left{
           border-radius: 30px 0rem 0rem 30px;
           height: 10vh;
-          width: 50%;
+          flex: 1;
           box-shadow: none;
           background-color: #6d767e;
         }
         .mouse_button_right{
           border-radius: 0rem 30px 30px 0rem;
           height: 10vh;
-          width: 49%;
+          flex: 1;
           box-shadow: none;
           background-color: #6d767e;
         }
@@ -130,14 +130,14 @@ class SUTPCard extends s {
 
     render() {
 	return y`
-    <the-tv style="height:80vh;">
+    <touchpad-card style="height:80vh;">
       </div>
         ${this.touchpad()}
-        <div style="width: 93%;margin: 0vh auto 10px;">
+        <div style="width: 93%;margin: 0vh auto 10px;display: flex;">
           ${this.baseButton('mouse_button_left')}
           ${this.baseButton('mouse_button_right')}
         </div>
-    </the-tv>
+    </touchpad-card>
        `;
     }
 
@@ -149,7 +149,7 @@ class SUTPCard extends s {
 	    console.log("ButtonClick");
 	    this.feedback('light'); 
 	    this.execute({type: 'click',src: cssName});
-	});
+	}, {passive: true});
     
 	button.addEventListener('touchstart',e => {
 	    console.log("ButtonTouchStart");
@@ -158,19 +158,19 @@ class SUTPCard extends s {
 		this.feedback('light'); 
 		this.execute({type: 'hold',src: cssName});
 	    }, 600);
-	});
+	}, {passive: true});
 
 	button.addEventListener('touchmove',e => {
 	    console.log("ButtonTouchMove");
 	    e.stopImmediatePropagation(); 
 	    clearTimeout(holdTimer); 
-	});
+	}, {passive: true});
 	
 	button.addEventListener('touchend',e=>{
 	    console.log("ButtonTouchEnd");
 	    e.stopImmediatePropagation();
 	    clearTimeout(holdTimer);
-	});
+	}, {passive: true});
 	return button;
     }
 
