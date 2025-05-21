@@ -14,6 +14,7 @@ This card displays a simple universal touchpad which writes its events into help
 ## Generated Events
 - Mouse move in x and y coordinates
 - Left/right mouse click
+- Left Mouse button hold (longpress to start hold, tap tp release)
 
 
 # Setup
