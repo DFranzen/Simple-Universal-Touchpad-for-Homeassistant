@@ -96,14 +96,14 @@ shell_command:
 ### Automation
 Mouse move:
 ```
-alias: MouseMove_to_Framework
+alias: MouseMove_to_Laptop
 description: ""
 triggers:
   - entity_id:
       - input_number.mouse_y
     trigger: state
 actions:
-  - action: shell_command.framework_mousemove
+  - action: shell_command.computer_mousemove
     data: {}
   - data:
       value: 0
@@ -120,7 +120,7 @@ mode: single
 
 Mouse Down/up (Example for Left Down, adjust for right and up)
 ```
-alias: MouseLeftDown_to_Framework
+alias: MouseLeftDown_to_Laptop
 description: ""
 triggers:
   - entity_id:
@@ -128,7 +128,7 @@ triggers:
     to: "on"
     trigger: state
 actions:
-  - action: shell_command.framework_mouse_leftdown
+  - action: shell_command.computer_mouse_leftdown
     data: {}
 mode: single
 ```
@@ -136,9 +136,470 @@ mode: single
 ## MQTT / Node-red
 
 ### Requirements
+- Node-red setup on the target computer
+- Target computer reachable through node-red from the HomeAssistant
 
 ### Setup on Node-red
+#### Mousemove flow
+```
+[
+    {
+        "id": "3a04694b8d100522",
+        "type": "mqtt in",
+        "z": "9072b355de756fe9",
+        "name": "",
+        "topic": "input_pair/Laptop_Mouse/set",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7715a72184178191",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 280,
+        "y": 1060,
+        "wires": [
+            [
+                "524a96c3928b323b"
+            ]
+        ]
+    },
+    {
+        "id": "524a96c3928b323b",
+        "type": "function",
+        "z": "9072b355de756fe9",
+        "name": "extract coordinates",
+        "func": "var factor=10\nif (Number.isInteger(msg.payload.x) && Number.isInteger(msg.payload.y))\n  factor = 1\nreturn {payload: \"\" + Math.round(-msg.payload.x*factor) + \" \" + Math.round(-msg.payload.y*factor)};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 1060,
+        "wires": [
+            [
+                "01badf34c2ebf7ec"
+            ]
+        ]
+    },
+    {
+        "id": "01badf34c2ebf7ec",
+        "type": "exec",
+        "z": "9072b355de756fe9",
+        "command": "export DISPLAY=:0;xdotool mousemove_relative -- ",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 1050,
+        "y": 1060,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7715a72184178191",
+        "type": "mqtt-broker",
+        "name": "<MQTTBrokerName>",
+        "broker": "<MQTTBrokerIP>",
+        "port": "<MQTTPort>",
+        "tls": "<MQTTBrokerTLS>",
+        "clientid": "<MQTTBrokerID>",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": false,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "<MQTTBrokerTLS>",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "ca.crt",
+        "servername": "",
+        "verifyservercert": false,
+        "alpnprotocol": ""
+    }
+]
+```
 
+#### Mouse Buttons
+```
+[
+    {
+        "id": "68ee587de3365dea",
+        "type": "mqtt in",
+        "z": "9072b355de756fe9",
+        "name": "",
+        "topic": "Laptop",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "7715a72184178191",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 270,
+        "y": 260,
+        "wires": [
+            [
+                "f63a897fbf0460ad",
+                "5e5ae2d9cfad85f8",
+                "f3f9502a7003f089",
+                "df065cd6c88b4e8b",
+                "420ff0bba7a7cbe2",
+                "c9716270880d3135",
+                "49a5c228e64102dc",
+                "56cb45a845748ce6",
+                "5323ed83dc049965",
+                "40f7e260cd17ca73",
+                "10f6151b0d8c6f9d",
+                "ee79288130de68b1",
+                "9ccff470ca2fc817",
+                "2c1966a95f9e2761",
+                "0b380d539e0bfc8b",
+                "bb35db7c5d7dc5b3",
+                "491c9a8850117c71",
+                "61e87448ede9ac50",
+                "f0038b2d1afc638c",
+                "e428907093e90395"
+            ]
+        ]
+    },
+    {
+        "id": "491c9a8850117c71",
+        "type": "switch",
+        "z": "9072b355de756fe9",
+        "name": "MOUSE_LEFT_DOWN",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "MOUSE_LEFT_DOWN",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 590,
+        "y": 840,
+        "wires": [
+            [
+                "2415104344d7e653"
+            ]
+        ]
+    },
+    {
+        "id": "61e87448ede9ac50",
+        "type": "switch",
+        "z": "9072b355de756fe9",
+        "name": "MOUSE_LEFT_UP",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "MOUSE_LEFT_UP",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 570,
+        "y": 880,
+        "wires": [
+            [
+                "ec8d695a743ec90b"
+            ]
+        ]
+    },
+    {
+        "id": "f0038b2d1afc638c",
+        "type": "switch",
+        "z": "9072b355de756fe9",
+        "name": "MOUSE_RIGHT_DOWN",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "MOUSE_RIGHT_DOWN",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 590,
+        "y": 920,
+        "wires": [
+            [
+                "74e9b9ce8fca68e1",
+                "c18dc4dfb84e51e8"
+            ]
+        ]
+    },
+    {
+        "id": "e428907093e90395",
+        "type": "switch",
+        "z": "9072b355de756fe9",
+        "name": "MOUSE_RIGHT_UP",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "MOUSE_RIGHT_UP",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 580,
+        "y": 960,
+        "wires": [
+            [
+                "7585f81886584946",
+                "c18dc4dfb84e51e8"
+            ]
+        ]
+    },
+    {
+        "id": "7585f81886584946",
+        "type": "exec",
+        "z": "9072b355de756fe9",
+        "command": "export DISPLAY=:0;xdotool mouseup --clearmodifiers 3",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 1060,
+        "y": 960,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "74e9b9ce8fca68e1",
+        "type": "exec",
+        "z": "9072b355de756fe9",
+        "command": "export DISPLAY=:0;xdotool mousedown 3",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 1020,
+        "y": 920,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "ec8d695a743ec90b",
+        "type": "exec",
+        "z": "9072b355de756fe9",
+        "command": "export DISPLAY=:0;xdotool mouseup --clearmodifiers 1",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 1060,
+        "y": 880,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "2415104344d7e653",
+        "type": "exec",
+        "z": "9072b355de756fe9",
+        "command": "export DISPLAY=:0;xdotool mousedown --clearmodifiers 1",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 1070,
+        "y": 840,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7715a72184178191",
+        "type": "mqtt-broker",
+        "name": "<MQTTBrokerName>",
+        "broker": "<MQTTBrokerIP>",
+        "port": "<MQTTPort>",
+        "tls": "<MQTTBrokerTLS>",
+        "clientid": "<MQTTBrokerID>",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": false,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "<MQTTBrokerTLS>",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "ca.crt",
+        "servername": "",
+        "verifyservercert": false,
+        "alpnprotocol": ""
+    }
+]
+```
 ### Automation
 
+```
+alias: Mouse Move to MQTT
+description: ""
+triggers:
+  - entity_id:
+      - input_number.mouse_y
+    trigger: state
+actions:
+  - data:
+      qos: 0
+      retain: false
+      topic: input_pair/Laptop_Mouse/set
+      payload: >
+        {{ "{\"x\": " + (states.input_number.mouse_x.state) | string + ", \"y\":
+        " + (states.input_number.mouse_y.state) | string + "}" }}
+    action: mqtt.publish
+  - data:
+      value: 0
+    target:
+      entity_id: input_number.mouse_y
+    action: input_number.set_value
+  - data:
+      value: 0
+    target:
+      entity_id: input_number.mouse_x
+    action: input_number.set_value
+mode: single
+```
+
+#### Mouse Button
+```
+alias: Mouse Left button Down to MQTT
+description: ""
+triggers:
+  - entity_id:
+      - input_boolean.mouse_buttonleft
+    to: "on"
+    trigger: state
+conditions:
+  - condition: state
+    entity_id: input_select.video_gerat
+    state: Laptop
+actions:
+  - data:
+      topic: Laptop
+      payload: MOUSE_LEFT_DOWN
+    action: mqtt.publish
+mode: single
+```
+
 ## Conditional actors
+The flexibility of the automations allows for conditional actors, meaning the events are send to different devices (even via different protocols) depending on a condition.
+
+### Example
+Here is an example automation of using an input_select condition to send the buttonleft event to either a laptop or a gaming computer.
+
+```
+description: ""
+mode: single
+triggers:
+  - entity_id:
+      - input_boolean.mouse_buttonleft
+    to: "on"
+    trigger: state
+actions:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: input_select.active_playback_device
+            state: Laptop
+        sequence:
+          - action: shell_command.laptop_mouse_leftdown
+            metadata: {}
+            data: {}
+      - conditions:
+          - condition: state
+            entity_id: input_select.active_playback_device
+            state: Gaming
+        sequence:
+          - action: shell_command.gaming_mouse_leftdown
+            metadata: {}
+            data: {}
+
+```
