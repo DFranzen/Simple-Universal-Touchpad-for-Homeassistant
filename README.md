@@ -135,4 +135,10 @@ mode: single
 
 ## MQTT / Node-red
 
+### Requirements
+
+### Setup on Node-red
+
+### Automation
+
 ## Conditional actors
