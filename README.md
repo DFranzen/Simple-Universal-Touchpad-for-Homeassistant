@@ -141,6 +141,11 @@ mode: single
 
 ### Setup on Node-red
 #### Mousemove flow
+<details>
+
+<summary>Example Node-Red configuration</summary>
+Replace all the <MQTTBroker...> information with your own
+
 ```
 [
     {
@@ -247,8 +252,16 @@ mode: single
     }
 ]
 ```
+</details>
 
 #### Mouse Buttons
+
+<details>
+
+<summary>Example Node-Red configuration</summary>
+
+Replace all the <MQTTBroker...> information with your own
+
 ```
 [
     {
@@ -517,6 +530,9 @@ mode: single
     }
 ]
 ```
+</details>
+
+          
 ### Automation
 
 ```
