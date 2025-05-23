@@ -183,30 +183,36 @@ class SUTPCard extends s {
 	    console.log("TouchPadClick");
             this.execute({type: 'click',src: 'touchpad'});
             this.feedback('light'); 
-	});
+	}, {passive: true});
 	
 	touchpad.addEventListener('touchstart' ,e => {
-	    console.log("TouchPadTouchStart");
 	    e.stopImmediatePropagation();  
-	    this.touchStart(e); 
-	    holdTimer = setTimeout(() => { 
-		this.feedback('medium'); 
-		this.execute({type: 'hold',src: 'touchpad'});
-	    }, 700);
-	});
+	    this.touchStart(e);
+	}, {passive: true});
+	touchpad.addEventListener('mousedown' ,e => {
+	    e.stopImmediatePropagation();  
+	    this.mouseStart(e);
+	}, {passive: true});
 	
 	touchpad.addEventListener('touchmove',e => {
-	    console.log("TouchPadTouchMove");
 	    e.stopImmediatePropagation(); 
 	    this.touchMove(e);
-	    clearTimeout(holdTimer); 
-	});
+	}, {passive: true});
+	touchpad.addEventListener('mousemove',e => {
+	    e.stopImmediatePropagation(); 
+	    this.mouseMove(e);
+	}, {passive: true});
 	
 	touchpad.addEventListener('touchend', e => {
-	    console.log("TouchPadTouchEnd");
 	    e.stopImmediatePropagation();
-	    clearTimeout(holdTimer);
-	});
+	    this.touchEnd(e);
+	}, {passive: true});
+	touchpad.addEventListener('mouseup', e => {
+	    e.stopImmediatePropagation();
+	    this.mouseEnd(e);
+	}, {passive: true});
+
+
 	return touchpad;
     }
 
@@ -243,32 +249,109 @@ class SUTPCard extends s {
 	moreInfo.detail = {}; //entityId: this.config.entity};
 	node.dispatchEvent(moreInfo);
     }
-    feedback(type){
+    feedback(type) {
 	vibrate.detail = type;
 	window.dispatchEvent(vibrate);
     }
-    
-    touchStart(e){
-	window.initialX = e.touches[0].clientX;
-	window.initialY = e.touches[0].clientY;
+
+    // ----------- START ---------------------
+    touchStart(e) {
+	this.strokeStart(e.touches[0].clientX, e.touches[0].clientY);
     }
+    
+    mouseStart(e) {
+	this.strokeStart(e.clientX, e.clientY);
+    }
+    
+    strokeStart(x,y) {
+	window.initialX = x;
+	window.initialY = y;
+	window.previousX = x;
+	window.previousY = y;
+
+	console.log("StrokeStart");
+	holdTimer = setTimeout(() => { 
+	    this.feedback('medium'); 
+	    this.execute({type: 'hold',src: 'touchpad'});
+	}, 700);
+    }
+
+    // --------------------- END ----------------
+    touchEnd(e){
+	this.strokeEnd(e.touches[0].clientX,e.touches[0].clientY);
+    }
+    mouseEnd(e){
+	this.strokeEnd(e.clientX,e.clientY);
+    }
+
+    strokeEnd(x,y) {
+	console.log("TouchPadTouchEnd");
+	clearTimeout(holdTimer);
+
+	var distX = x - window.initialX;
+	var distY = y - window.initialY;
+
+	window.initialX = 0;
+	window.initialY = 0;
+	
+	if ( Math.abs(distY) > Math.abs(distX) ) {
+	    // This is up down movement -> Ignore distX
+	    if (distY > 0) {
+		console.log("Cursor Down");
+		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursordown});
+		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursordown});
+	    } else {
+		console.log("Cursor Up");
+		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorup});
+		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorup});
+	    }
+	} else {
+	    // This is left right movement -> Ignore distY
+	    // This is up down movement -> Ignore distX
+	    if (distX > 0) {
+		console.log("Cursor Right");
+		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorright});
+		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorright});
+	    } else {
+		console.log("Cursor Left");
+		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorleft});
+		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorleft});
+	    }
+	}
+    }
+
+    // --------- MOVE -----------------------
     touchMove(e,ha = this.hass) {
-	if( ! initialX || ! initialY){
+	this.strokeMove(e.touches[0].clientX,e.touches[0].clientY,ha);
+    }
+    mouseMove(e,ha = this.hass) {
+	this.strokeMove(e.clientX,e.clientY,ha);
+    }
+    strokeMove(x,y,ha) {
+	if( ! window.initialX || ! window.initialY){
+	    // before first stroke
 	    return;
 	}
+	if ( (window.initialX == -1) && (window.initialY == -1) ) {
+	    // no ongoing stroke
+	    return;
+	}
+
+	console.log("TouchPadTouchMove");
+	clearTimeout(holdTimer);
 	
-	var currentX = e.touches[0].clientX;
-	var currentY = e.touches[0].clientY;
+	var currentX = x;
+	var currentY = y;
 	
-	var diffX = initialX - currentX;
-	var diffY = initialY - currentY;
+	var diffX = previousX - currentX;
+	var diffY = previousY - currentY;
 	
 	ha.callService("input_number","set_value",{value: diffX}, {entity_id: this.config.options.mousex})
 	ha.callService("input_number","set_value",{value: diffY}, {entity_id: this.config.options.mousey})    
 	console.log("X:" + diffX + ", y: " + diffY)
 	
-	initialX = currentX;
-	initialY = currentY;
+	previousX = currentX;
+	previousY = currentY;
     }
     
     
@@ -303,14 +386,22 @@ class ConfigView extends s {
 	    console.log( "TouchPad: Options not defined, using default values")
 	    this._config.options = {};
 	}
-	if (this._config.options.mousex     === undefined)
-	    this._config.options.mousex     = "";
-	if (this._config.options.mousey     === undefined)
-	    this._config.options.mousey     = "";
-	if (this._config.options.mouseleft  === undefined)
-	    this._config.options.mouseleft  = "";
-	if (this._config.options.mouseright === undefined)
-	    this._config.options.mouseright = "";
+	if (this._config.options.mousex      === undefined)
+	    this._config.options.mousex      = "";
+	if (this._config.options.mousey      === undefined)
+	    this._config.options.mousey      = "";
+	if (this._config.options.mouseleft   === undefined)
+	    this._config.options.mouseleft   = "";
+	if (this._config.options.mouseright  === undefined)
+	    this._config.options.mouseright  = "";
+	if (this._config.options.cursorleft  === undefined)
+	    this._config.options.cursorleft  = "";
+	if (this._config.options.cursorright === undefined)
+	    this._config.options.cursorright = "";
+	if (this._config.options.cursorup    === undefined)
+	    this._config.options.cursorup    = "";
+	if (this._config.options.cursordown  === undefined)
+	    this._config.options.cursordown  = "";
     }
 
     render(){
@@ -335,6 +426,26 @@ class ConfigView extends s {
                             return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
                         })}
           </ha-select>
+          <ha-select id="cursorleft-selector"  .value="${this._config?.options?.cursorleft }"  label="Cursor left" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
+              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
+                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
+                        })}
+          </ha-select>
+          <ha-select id="cursorright-selector"  .value="${this._config?.options?.cursorright }"  label="Cursor right" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
+              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
+                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
+                        })}
+          </ha-select>
+          <ha-select id="cursorup-selector"  .value="${this._config?.options?.cursorup }"  label="Cursor up" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
+              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
+                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
+                        })}
+          </ha-select>
+          <ha-select id="cursordown-selector"  .value="${this._config?.options?.cursordown }"  label="Cursor down" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
+              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
+                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
+                        })}
+          </ha-select>
       `;
     }  
 
@@ -355,6 +466,18 @@ class ConfigView extends s {
 	    }
 	    if(e?.target.id === 'mouseright-selector'){
 		this._config.options.mouseright = e.target.value;
+	    }
+	    if(e?.target.id === 'cursorleft-selector'){
+		this._config.options.cursorleft = e.target.value;
+	    }
+	    if(e?.target.id === 'cursorright-selector'){
+		this._config.options.cursorright = e.target.value;
+	    }
+	    if(e?.target.id === 'cursorup-selector'){
+		this._config.options.cursorup = e.target.value;
+	    }
+	    if(e?.target.id === 'cursordown-selector'){
+		this._config.options.cursordown = e.target.value;
 	    }
 
 	}
