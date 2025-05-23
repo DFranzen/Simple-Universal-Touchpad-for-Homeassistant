@@ -31,6 +31,8 @@ var clickTimer,holdTimer,holdInterval;
 class SUTPCard extends s {
     constructor(){
 	super();
+	window.initialX = -1;
+	window.initialY = -1;
 	this.t = [];
     }
 
