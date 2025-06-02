@@ -31,9 +31,10 @@ var clickTimer,holdTimer,holdInterval;
 class SUTPCard extends s {
     constructor(){
 	super();
-	window.initialX = -1;
-	window.initialY = -1;
-	this.t = [];
+	this.initialX = -1;
+	this.initialY = -1;
+	this.previousX = -1;
+	this.previousY = -1;
     }
 
     static get properties() {
@@ -223,24 +224,32 @@ class SUTPCard extends s {
 	case 'click':
 	    switch (act.src) {
             case 'mouse_button_left':
-		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.mouseleft});
-		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.mouseleft});
+		if (this.config.options.enableMouseButtons) {
+		    this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.mouseleft});
+		    this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.mouseleft});
+		}
 		break;
 	    case 'mouse_button_right':
-		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.mouseright});
-		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.mouseright});
+		if (this.config.options.enableMouseButtons) {
+		    this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.mouseright});
+		    this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.mouseright});
+		}
 		break;
 
 	    case 'touchpad':
-		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.mouseleft});
-		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.mouseleft})
+		if (this.config.options.enableMouseButtons) {
+		    this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.mouseleft});
+		    this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.mouseleft})
+		}
 		break;
 	    }
 	    break;
 	case 'hold':
 	    switch(act.src){
 	    case 'touchpad':
-		this.hass.callService("input_boolean","turn_on",{}, {entity_id: this.config.options.mouseleft});
+		if (this.config.options.enableMouseButtons) {		
+		    this.hass.callService("input_boolean","turn_on",{}, {entity_id: this.config.options.mouseleft});
+		}
 		break;
             }
             break;
@@ -266,10 +275,10 @@ class SUTPCard extends s {
     }
     
     strokeStart(x,y) {
-	window.initialX = x;
-	window.initialY = y;
-	window.previousX = x;
-	window.previousY = y;
+	this.initialX = x;
+	this.initialY = y;
+	this.previousX = x;
+	this.previousY = y;
 
 	console.log("StrokeStart");
 	holdTimer = setTimeout(() => { 
@@ -287,37 +296,46 @@ class SUTPCard extends s {
     }
 
     strokeEnd(x,y) {
-	console.log("TouchPadTouchEnd");
+	console.log("StrokeEnd");
 	clearTimeout(holdTimer);
 
-	var distX = x - window.initialX;
-	var distY = y - window.initialY;
+	var distX = x - this.initialX;
+	var distY = y - this.initialY;
 
-	window.initialX = 0;
-	window.initialY = 0;
+	// Clear initial coordinates
+	this.initialX = -1;
+	this.initialY = -1;
 	
 	if ( Math.abs(distY) > Math.abs(distX) ) {
 	    // This is up down movement -> Ignore distX
 	    if (distY > 0) {
 		console.log("Cursor Down");
-		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursordown});
-		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursordown});
+		if (this.config.options.enableCursorMove) {
+		    this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursordown});
+		    this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursordown});
+		}
 	    } else {
 		console.log("Cursor Up");
-		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorup});
-		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorup});
+		if (this.config.options.enableCursorMove) {		
+		    this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorup});
+		    this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorup});
+		}
 	    }
 	} else {
 	    // This is left right movement -> Ignore distY
 	    // This is up down movement -> Ignore distX
 	    if (distX > 0) {
 		console.log("Cursor Right");
-		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorright});
-		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorright});
+		if (this.config.options.enableCursorMove) {		
+		    this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorright});
+		    this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorright});
+		}
 	    } else {
 		console.log("Cursor Left");
-		this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorleft});
-		this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorleft});
+		if (this.config.options.enableCursorMove) {
+		    this.hass.callService("input_boolean","turn_on" ,{}, {entity_id: this.config.options.cursorleft});
+		    this.hass.callService("input_boolean","turn_off",{}, {entity_id: this.config.options.cursorleft});
+		}
 	    }
 	}
     }
@@ -330,30 +348,28 @@ class SUTPCard extends s {
 	this.strokeMove(e.clientX,e.clientY,ha);
     }
     strokeMove(x,y,ha) {
-	if( ! window.initialX || ! window.initialY){
-	    // before first stroke
-	    return;
-	}
-	if ( (window.initialX == -1) && (window.initialY == -1) ) {
+	if ( (this.initialX == -1) && (this.initialY == -1) ) {
 	    // no ongoing stroke
 	    return;
 	}
 
-	console.log("TouchPadTouchMove");
+	console.log("StrokeMove");
 	clearTimeout(holdTimer);
 	
 	var currentX = x;
 	var currentY = y;
 	
-	var diffX = previousX - currentX;
-	var diffY = previousY - currentY;
-	
-	ha.callService("input_number","set_value",{value: diffX}, {entity_id: this.config.options.mousex})
-	ha.callService("input_number","set_value",{value: diffY}, {entity_id: this.config.options.mousey})    
+	var diffX = this.previousX - currentX;
+	var diffY = this.previousY - currentY;
+
+	if (this.config.options.enableMouseMove) {
+	    ha.callService("input_number","set_value",{value: diffX}, {entity_id: this.config.options.mousex})
+	    ha.callService("input_number","set_value",{value: diffY}, {entity_id: this.config.options.mousey})
+	}
 	console.log("X:" + diffX + ", y: " + diffY)
 	
-	previousX = currentX;
-	previousY = currentY;
+	this.previousX = currentX;
+	this.previousY = currentY;
     }
     
     
@@ -383,6 +399,7 @@ class ConfigView extends s {
     };
 
     setConfig(config) {
+	console.log("setConfig executed: " + JSON.stringify(config));
 	this._config = config;
 	if (this._config.options === undefined) {
 	    console.log( "TouchPad: Options not defined, using default values")
@@ -404,51 +421,66 @@ class ConfigView extends s {
 	    this._config.options.cursorup    = "";
 	if (this._config.options.cursordown  === undefined)
 	    this._config.options.cursordown  = "";
+	if (this._config.options.enableMouseMove  === undefined)
+	    this._config.options.enableMouseMove  = true;
+	if (this._config.options.enableMouseButtons  === undefined)
+	    this._config.options.enableMouseButtons  = true;
+	if (this._config.options.enableCursorMove  === undefined)
+	    this._config.options.enableCursorMove  = true;
+	this.updateIt();
     }
 
+    renderSelector(id, label, value, enabled, optionSelector) {
+	if (enabled) {
+	    return y`<ha-select id="${id}" .value="${value}" label="${label}" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}" >
+                      ${Object.keys(this.hass.states).filter(ent => ent.match(optionSelector)).map(name => {
+                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
+                        })}
+                    </ha-select>`;
+	} else {
+	    return y`<ha-select disabled id="${id}" .value="${value}" label="${label}" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}" >
+                      ${Object.keys(this.hass.states).filter(ent => ent.match(optionSelector)).map(name => {
+                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
+                        })}
+                    </ha-select>`;
+	}
+    }
+
+    renderCheckBox(id, label, value, checked) {
+	if (checked) {
+            return y`
+                  <input type="checkbox" id="${id}" value="${value}" checked @click="${this.updateIt}" />
+                  <label for="${value}">${label}</label><br>
+            `;
+	} else {
+	    return y`
+                  <input type="checkbox" id="${id}" value="${value}" @click="${this.updateIt}" />
+                  <label for="${value}">${label}</label><br>
+            `;
+	}
+    }
+    
     render(){
-	return y`
-          <ha-select id="mousex-selector"  .value="${this._config?.options?.mousex }"  label="Mouse X-coordinate" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_number[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
-          <ha-select id="mousey-selector"  .value="${this._config?.options?.mousey }"  label="Mouse Y-coordinate" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_number[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
-          <ha-select id="mouseleft-selector"  .value="${this._config?.options?.mouseleft }"  label="Mouse left click" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
-          <ha-select id="mouseright-selector"  .value="${this._config?.options?.mouseright }"  label="Mouse right click" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
-          <ha-select id="cursorleft-selector"  .value="${this._config?.options?.cursorleft }"  label="Cursor left" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
-          <ha-select id="cursorright-selector"  .value="${this._config?.options?.cursorright }"  label="Cursor right" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
-          <ha-select id="cursorup-selector"  .value="${this._config?.options?.cursorup }"  label="Cursor up" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
-          <ha-select id="cursordown-selector"  .value="${this._config?.options?.cursordown }"  label="Cursor down" @selected="${this.updateIt}" @closed="${ev => ev.stopPropagation()}"  >
-              ${Object.keys(this.hass.states).filter(ent => ent.match('input_boolean[.]')).map(name => {
-                            return y` <mwc-list-item .value="${name}">${name}</mwc-list-item> `;
-                        })}
-          </ha-select>
+	var view = y`
+          ${this.renderCheckBox("SUTPSelectorMouseMove", "Enable Mouse Move Events", "SUTPMouseMove", this._config?.options?.enableMouseMove)}
+          <div id="SUTPConfigMouseMove">
+              ${this.renderSelector("mousex-selector", "Mouse X-coordinate", this._config?.options?.mousex, this._config?.options?.enableMouseMove,'input_number[.]')}
+              ${this.renderSelector("mousey-selector", "Mouse Y-coordinate", this._config?.options?.mousey, this._config?.options?.enableMouseMove,'input_number[.]')}
+          </div>
+          ${this.renderCheckBox("SUTPSelectorMouseButtons", "Enable Mouse Click Events", "SUTPMouseButtons", this._config?.options?.enableMouseButtons)}
+          <div id="SUTPConfigMouseButtons">
+              ${this.renderSelector("mouseleft-selector",  "Mouse left click",  this._config?.options?.mouseleft,  this._config?.options?.enableMouseButtons,'input_boolean[.]')}
+              ${this.renderSelector("mouseright-selector", "Mouse right click", this._config?.options?.mouseright, this._config?.options?.enableMouseButtons,'input_boolean[.]')}
+          </div>
+          ${this.renderCheckBox("SUTPSelectorCursorMove", "Enable Cursor Move Events", "SUTPCursorMove", this._config?.options?.enableCursorMove)}
+          <div id="SUTPConfigCursorMove">
+              ${this.renderSelector("cursorleft-selector",  "Cursor left",  this._config?.options?.cursorleft,  this._config?.options?.enableCursorMove,'input_boolean[.]')}
+              ${this.renderSelector("cursorright-selector", "Cursor right", this._config?.options?.cursorright, this._config?.options?.enableCursorMove,'input_boolean[.]')}
+              ${this.renderSelector("cursorup-selector",    "Cursor up",    this._config?.options?.cursorup,    this._config?.options?.enableCursorMove,'input_boolean[.]')}
+              ${this.renderSelector("cursordown-selector",  "Cursor down",  this._config?.options?.cursordown,  this._config?.options?.enableCursorMove,'input_boolean[.]')}
+          </div>
       `;
+	return view;
     }  
 
     updateIt(e,ha = this.hass){
@@ -456,7 +488,7 @@ class ConfigView extends s {
 	    if (this._config.options === undefined) {
 		this._config.options = {}; 
 	    }
-	    
+
 	    if(e?.target.id === 'mousex-selector'){
 		this._config.options.mousex = e.target.value;
 	    }
@@ -481,7 +513,15 @@ class ConfigView extends s {
 	    if(e?.target.id === 'cursordown-selector'){
 		this._config.options.cursordown = e.target.value;
 	    }
-
+	    if (e?.target.id === 'SUTPSelectorMouseMove') {
+		this._config.options.enableMouseMove = e.target.checked;
+	    }
+	    if (e?.target.id === 'SUTPSelectorMouseButtons') {
+		this._config.options.enableMouseButtons = e.target.checked;
+	    }
+	    if (e?.target.id === 'SUTPSelectorCursorMove') {
+		this._config.options.enableCursorMove = e.target.checked;
+	    }
 	}
 	const event = new Event("config-changed", {
 	    bubbles: true,
@@ -491,6 +531,7 @@ class ConfigView extends s {
 	this.dispatchEvent(event); 
 	this.requestUpdate();
     }
+
     static get styles(){
 	return i$1`
       #entity-selector{
@@ -517,7 +558,13 @@ class ConfigView extends s {
       }
     `;
     }
+
+    onSelectorChanged(e) {
+	
+    }
 }
+
+
 
 customElements.define("content-tpcard-editor", ConfigView);
 

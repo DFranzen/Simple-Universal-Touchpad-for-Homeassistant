@@ -1,5 +1,6 @@
 # Simple Universal Touchpad for Homeassistant / Lovelace
 This card displays a simple universal touchpad which writes its events into helper variables. This way the events can be acted upon with any automation.
+(Inspired and initially based on code from https://github.com/iablon/HomeAssistant-Touchpad-Card)
 
 ## Sample view
 ### Card
@@ -9,16 +10,18 @@ This card displays a simple universal touchpad which writes its events into help
 
 ## Features
 - Simple to use card
-- Flexible mapping to actors trough full feature set of automations
+- Simulating a touchpad input area with two buttons, similar to the trackpad of a laptop.
+- Flexible mapping of the input to homeassistant actors trough full feature set of automations
 
 ## Generated Events
-- Mouse move in x and y coordinates
-- Left/right mouse click
-  - When buttons are press
-  - When the touchpad area is tapped
-- Left Mouse button hold
-  - longpress to start hold, tap to release)
+The card generates three kinds of events:
 
+- Mouse move events: Every time the user moves the finger on the touchpad, the distance travelled in the two axes (x and y) is measured
+
+- Mouse Click events: The card simulates a mouse with two buttons: left and right.The emulated mouse buttons can be in a pressed or released state. The pressed state of each of the two buttons is represented as a boolean. If the user taps (touch and release imidiately) the touchpad area or the buttons on the bottom of the card the corresponding button is pressed and released imidiately, resulting in a mouse button click.
+If the user holds the finger down without mocing (longpress) on the buttons or the touchpad area, the card initialtes a hold, keeping the button state pressed, even if the finger or mouse is subsequently removed from the touchpad. This way the user can drag items with the simulated mouse. The holding can only be released by a simple tap.
+
+- Cursor events: In addition to the mouse movement, the card also generates Cursor events, every time the user lifts the finger from the touchpad area. For example, when the final position of the finger is mostly to the right of the initial touch-down position, a curser-right event. The same holds for all for major directions left/right/up/down. This event can be used with devices, which do not have a mouse pointer, but directional input buttons, like TVs.
 
 # Setup
 
@@ -36,15 +39,17 @@ This card displays a simple universal touchpad which writes its events into help
 The Touchpad card interfaces with HomeAssistant through helpers.
 To Prepare for the configuration you need to create a few new helpers, which the card can use to store the events.
 
-Open the "Helpers" Tab under "Settings" -> "Devices & Services" and Create the following helpers
-- 2 input_numbers for the mouse movements (x/y), suggested names: Mouse_x, Mouse_y
-- 2 input_boolean for the mouse buttons (left/right), suggested names: Mouse_ButtonLeft, Mouse_ButtonRight
+Open the "Helpers" Tab under "Settings" -> "Devices & Services" and create the required helpers. You only need to create the helpers for the event you want to use.
+- For the mouse movement events, create two input_numbers for the mouse movements (x/y), suggested names: Mouse_x, Mouse_y
+- For the mouse button events, create two input_boolean for the mouse buttons (left/right), suggested names: Mouse_ButtonLeft, Mouse_ButtonRight
+- For the cursor move events, create four input_boolean, one for each direction (left/right/up/down), suggested names: Mouse_CursorLeft, Mouse_CursorRight, Mouse_CursorUp, Mouse_CursorDown, 
 
 ## Configuration
-Add the touchpad card to the dashboard and assign the newly created helpers to the fields in the configuration pop-up.
+Add the touchpad card to the dashboard and open the configuration dialog. Here you can enable the desired events, which should be fired, and assign the newly created helpers to the corresponding fields.
 
 ## Usage
-Once the card is interacted with it writes the events into the given helpers. The input_boolen helpers are set to true, when the mouse button is pressed and the input_numbers helpers contain the last distance travelled in x/y direction.
+Once the card is interacted with it writes the event's data into the given helpers. The input_boolen helpers are set to true, when the mouse button is pressed and the input_numbers helpers contain the last distance travelled in x/y direction.
+
 In order to link the events written to the helpers with actors automations can be used. These could do any action in HomeAssistant. The automations should have the following properties
 - The trigger is
 ```
